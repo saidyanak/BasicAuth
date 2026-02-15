@@ -17,6 +17,27 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
+    networks:
+      - basicauth-network
+
+  rabbitmq:
+    image: rabbitmq:3-management-alpine
+    container_name: basicauth-rabbitmq
+    environment:
+      RABBITMQ_DEFAULT_USER: guest
+      RABBITMQ_DEFAULT_PASS: guest
+    ports:
+      - "5672:5672"   # AMQP protocol
+      - "15672:15672" # Management UI
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - basicauth-network
 
   api:
     build:
@@ -30,12 +51,24 @@ services:
       - JwtSettings__Issuer=BasicAuthAPI
       - JwtSettings__Audience=BasicAuthClient
       - JwtSettings__ExpirationMinutes=60
+      - RabbitMQ__Host=rabbitmq
+      - RabbitMQ__Username=guest
+      - RabbitMQ__Password=guest
     ports:
       - "8080:8080"
     depends_on:
       postgres:
         condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
     restart: unless-stopped
+    networks:
+      - basicauth-network
 
 volumes:
   postgres_data:
+  rabbitmq_data:
+
+networks:
+  basicauth-network:
+    driver: bridge

@@ -1,11 +1,8 @@
-using BasicAuth.Data;
-using BasicAuth.DTOs;
-using BasicAuth.Models;
-using BasicAuth.Services;
+using BasicAuth.Application.Commands;
+using BasicAuth.Application.Queries;
+using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using BCrypt.Net;
 using System.Security.Claims;
 
 namespace BasicAuth.Controllers;
@@ -14,80 +11,55 @@ namespace BasicAuth.Controllers;
 [Route("api/[controller]")]
 public class AuthController : ControllerBase
 {
-    private readonly AppDbContext _context;
-    private readonly JwtService _jwtService;
+    private readonly IMediator _mediator;
 
-    public AuthController(AppDbContext context, JwtService jwtService)
+    public AuthController(IMediator mediator)
     {
-        _context = context;
-        _jwtService = jwtService;
+        _mediator = mediator;
     }
 
     [HttpPost("register")]
-    public async Task<ActionResult<AuthResponseDto>> Register(RegisterDto registerDto)
+    public async Task<IActionResult> Register([FromBody] RegisterUserCommand command)
     {
-        if (await _context.Users.AnyAsync(u => u.Email == registerDto.Email))
+        var result = await _mediator.Send(command);
+
+        return Ok(new
         {
-            return BadRequest(new { message = "Bu email adresi zaten kullanılıyor" });
-        }
-
-        var user = new User
-        {
-            FirstName = registerDto.FirstName,
-            LastName = registerDto.LastName,
-            Email = registerDto.Email,
-            PasswordHash = BCrypt.Net.BCrypt.HashPassword(registerDto.Password),
-            CreatedAt = DateTime.UtcNow
-        };
-
-        _context.Users.Add(user);
-        await _context.SaveChangesAsync();
-
-        var token = _jwtService.GenerateToken(user);
-
-        return Ok(new AuthResponseDto
-        {
-            Token = token,
-            User = new UserDto
+            accessToken = result.AccessToken,
+            refreshToken = result.RefreshToken,
+            user = new
             {
-                Id = user.Id,
-                FirstName = user.FirstName,
-                LastName = user.LastName,
-                Email = user.Email,
-                CreatedAt = user.CreatedAt
+                id = result.UserId,
+                firstName = result.FirstName,
+                lastName = result.LastName,
+                email = result.Email
             }
         });
     }
 
     [HttpPost("login")]
-    public async Task<ActionResult<AuthResponseDto>> Login(LoginDto loginDto)
+    public async Task<IActionResult> Login([FromBody] LoginUserCommand command)
     {
-        var user = await _context.Users.FirstOrDefaultAsync(u => u.Email == loginDto.Email);
+        var result = await _mediator.Send(command);
 
-        if (user == null || !BCrypt.Net.BCrypt.Verify(loginDto.Password, user.PasswordHash))
+        return Ok(new
         {
-            return Unauthorized(new { message = "Email veya şifre hatalı" });
-        }
-
-        var token = _jwtService.GenerateToken(user);
-
-        return Ok(new AuthResponseDto
-        {
-            Token = token,
-            User = new UserDto
+            accessToken = result.AccessToken,
+            refreshToken = result.RefreshToken,
+            user = new
             {
-                Id = user.Id,
-                FirstName = user.FirstName,
-                LastName = user.LastName,
-                Email = user.Email,
-                CreatedAt = user.CreatedAt
+                id = result.UserId,
+                firstName = result.FirstName,
+                lastName = result.LastName,
+                email = result.Email,
+                role = result.Role
             }
         });
     }
 
     [Authorize]
     [HttpGet("me")]
-    public async Task<ActionResult<UserDto>> GetCurrentUser()
+    public async Task<IActionResult> GetCurrentUser()
     {
         var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
 
@@ -96,20 +68,36 @@ public class AuthController : ControllerBase
             return Unauthorized(new { message = "Geçersiz token" });
         }
 
-        var user = await _context.Users.FindAsync(userId);
+        var query = new GetCurrentUserQuery { UserId = userId };
+        var result = await _mediator.Send(query);
 
-        if (user == null)
-        {
-            return NotFound(new { message = "Kullanıcı bulunamadı" });
-        }
+        return Ok(result);
+    }
 
-        return Ok(new UserDto
+    [HttpPost("refresh")]
+    public async Task<IActionResult> RefreshToken([FromBody] RefreshTokenCommand command)
+    {
+        var result = await _mediator.Send(command);
+
+        return Ok(new
         {
-            Id = user.Id,
-            FirstName = user.FirstName,
-            LastName = user.LastName,
-            Email = user.Email,
-            CreatedAt = user.CreatedAt
+            accessToken = result.AccessToken,
+            refreshToken = result.RefreshToken,
+            user = new
+            {
+                id = result.UserId,
+                firstName = result.FirstName,
+                lastName = result.LastName,
+                email = result.Email,
+                role = result.Role
+            }
         });
+    }
+
+    [Authorize(Roles = "Admin")]
+    [HttpGet("admin-only")]
+    public IActionResult AdminOnly()
+    {
+        return Ok(new { message = "Bu endpoint sadece Admin kullanıcıları için!" });
     }
 }

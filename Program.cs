@@ -1,6 +1,14 @@
+using System.Reflection;
 using System.Text;
+using BasicAuth.Application.Behaviors;
 using BasicAuth.Data;
+using BasicAuth.Domain.Interfaces;
+using BasicAuth.Infrastructure.Messaging;
+using BasicAuth.Middleware;
 using BasicAuth.Services;
+using FluentValidation;
+using MassTransit;
+using MediatR;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
@@ -34,8 +42,36 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
 
 builder.Services.AddAuthorization();
 
-// Services
-builder.Services.AddScoped<JwtService>();
+// Domain Services
+builder.Services.AddScoped<IJwtService, JwtService>();
+
+// MediatR
+builder.Services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(Assembly.GetExecutingAssembly()));
+
+// FluentValidation
+builder.Services.AddValidatorsFromAssembly(Assembly.GetExecutingAssembly());
+
+// Add Validation Pipeline Behavior
+builder.Services.AddTransient(typeof(IPipelineBehavior<,>), typeof(ValidationBehavior<,>));
+
+// MassTransit & RabbitMQ
+var rabbitMqSettings = builder.Configuration.GetSection("RabbitMQ");
+builder.Services.AddMassTransit(x =>
+{
+    // Register Consumer
+    x.AddConsumer<UserRegisteredEventConsumer>();
+
+    x.UsingRabbitMq((context, cfg) =>
+    {
+        cfg.Host(rabbitMqSettings["Host"] ?? "localhost", "/", h =>
+        {
+            h.Username(rabbitMqSettings["Username"] ?? "guest");
+            h.Password(rabbitMqSettings["Password"] ?? "guest");
+        });
+
+        cfg.ConfigureEndpoints(context);
+    });
+});
 
 // Controllers
 builder.Services.AddControllers();
@@ -46,9 +82,9 @@ builder.Services.AddSwaggerGen(options =>
 {
     options.SwaggerDoc("v1", new OpenApiInfo
     {
-        Title = "BasicAuth API",
+        Title = "BasicAuth API - Clean Architecture + CQRS + RabbitMQ",
         Version = "v1",
-        Description = "JWT Authentication API"
+        Description = "JWT Authentication API with MediatR, FluentValidation, and MassTransit"
     });
 
     options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
@@ -78,6 +114,9 @@ builder.Services.AddSwaggerGen(options =>
 });
 
 var app = builder.Build();
+
+// Global Exception Handling Middleware
+app.UseMiddleware<GlobalExceptionMiddleware>();
 
 // Database Migration
 using (var scope = app.Services.CreateScope())
