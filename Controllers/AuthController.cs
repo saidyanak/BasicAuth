@@ -22,39 +22,14 @@ public class AuthController : ControllerBase
     public async Task<IActionResult> Register([FromBody] RegisterUserCommand command)
     {
         var result = await _mediator.Send(command);
-
-        return Ok(new
-        {
-            accessToken = result.AccessToken,
-            refreshToken = result.RefreshToken,
-            user = new
-            {
-                id = result.UserId,
-                firstName = result.FirstName,
-                lastName = result.LastName,
-                email = result.Email
-            }
-        });
+        return Ok(result);
     }
 
     [HttpPost("login")]
     public async Task<IActionResult> Login([FromBody] LoginUserCommand command)
     {
         var result = await _mediator.Send(command);
-
-        return Ok(new
-        {
-            accessToken = result.AccessToken,
-            refreshToken = result.RefreshToken,
-            user = new
-            {
-                id = result.UserId,
-                firstName = result.FirstName,
-                lastName = result.LastName,
-                email = result.Email,
-                role = result.Role
-            }
-        });
+        return Ok(result);
     }
 
     [Authorize]
@@ -78,20 +53,7 @@ public class AuthController : ControllerBase
     public async Task<IActionResult> RefreshToken([FromBody] RefreshTokenCommand command)
     {
         var result = await _mediator.Send(command);
-
-        return Ok(new
-        {
-            accessToken = result.AccessToken,
-            refreshToken = result.RefreshToken,
-            user = new
-            {
-                id = result.UserId,
-                firstName = result.FirstName,
-                lastName = result.LastName,
-                email = result.Email,
-                role = result.Role
-            }
-        });
+        return Ok(result);
     }
 
     [Authorize(Roles = "Admin")]
