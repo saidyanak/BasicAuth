@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BasicAuth - Dashboard</title>
+    <link rel="stylesheet" href="style.css">
+    <style>
+        .dashboard-container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .dashboard-header {
+            background: var(--card-bg);
+            border-radius: 20px;
+            padding: 30px;
+            margin-bottom: 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            animation: slideUp 0.6s ease-out;
+        }
+
+        .welcome-message h1 {
+            font-size: 2rem;
+            margin-bottom: 5px;
+        }
+
+        .welcome-message p {
+            color: var(--text-muted);
+        }
+
+        .user-badge {
+            display: inline-block;
+            padding: 6px 12px;
+            background: rgba(99, 102, 241, 0.2);
+            color: var(--primary-color);
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            margin-top: 10px;
+        }
+
+        .user-badge.admin {
+            background: rgba(245, 158, 11, 0.2);
+            color: #f59e0b;
+        }
+
+        .btn-logout {
+            padding: 12px 24px;
+            background: rgba(239, 68, 68, 0.1);
+            color: var(--error-color);
+            border: 1px solid var(--error-color);
+            border-radius: 10px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .btn-logout:hover {
+            background: var(--error-color);
+            color: white;
+        }
+
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .stat-card {
+            background: var(--card-bg);
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            animation: slideUp 0.6s ease-out;
+        }
+
+        .stat-card h3 {
+            color: var(--text-muted);
+            font-size: 0.9rem;
+            margin-bottom: 10px;
+            font-weight: 500;
+        }
+
+        .stat-card .value {
+            font-size: 2rem;
+            font-weight: 700;
+            margin-bottom: 5px;
+        }
+
+        .stat-card .label {
+            color: var(--text-muted);
+            font-size: 0.85rem;
+        }
+
+        .api-test {
+            background: var(--card-bg);
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            animation: slideUp 0.6s ease-out;
+        }
+
+        .api-test h2 {
+            margin-bottom: 20px;
+        }
+
+        .btn-test {
+            margin: 10px 10px 10px 0;
+            padding: 12px 24px;
+            background: rgba(99, 102, 241, 0.1);
+            color: var(--primary-color);
+            border: 1px solid var(--primary-color);
+            border-radius: 10px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .btn-test:hover {
+            background: var(--primary-color);
+            color: white;
+        }
+
+        .api-response {
+            background: var(--input-bg);
+            border: 2px solid var(--border-color);
+            border-radius: 10px;
+            padding: 20px;
+            margin-top: 20px;
+            max-height: 400px;
+            overflow-y: auto;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9rem;
+            line-height: 1.6;
+            white-space: pre-wrap;
+        }
+
+        .token-info {
+            background: var(--card-bg);
+            border-radius: 20px;
+            padding: 30px;
+            margin-top: 30px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            animation: slideUp 0.6s ease-out;
+        }
+
+        .token-box {
+            background: var(--input-bg);
+            border: 2px solid var(--border-color);
+            border-radius: 10px;
+            padding: 15px;
+            margin-top: 10px;
+            word-break: break-all;
+            font-family: 'Courier New', monospace;
+            font-size: 0.85rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="container dashboard-container">
+        <div class="dashboard-header">
+            <div class="welcome-message">
+                <h1>Hoş geldin, <span id="userName"></span>!</h1>
+                <p id="userEmail"></p>
+                <span id="userRole" class="user-badge"></span>
+            </div>
+            <button class="btn-logout" onclick="logout()">Çıkış Yap</button>
+        </div>
+
+        <div class="dashboard-grid">
+            <div class="stat-card">
+                <h3>USER ID</h3>
+                <div class="value" id="userId">-</div>
+                <div class="label">Kullanıcı Kimliği</div>
+            </div>
+            <div class="stat-card">
+                <h3>ROLE</h3>
+                <div class="value" id="roleValue">-</div>
+                <div class="label">Kullanıcı Rolü</div>
+            </div>
+            <div class="stat-card">
+                <h3>SESSION</h3>
+                <div class="value">✅ Active</div>
+                <div class="label">Oturum Durumu</div>
+            </div>
+        </div>
+
+        <div class="api-test">
+            <h2>API Test</h2>
+            <p style="color: var(--text-muted); margin-bottom: 20px;">
+                JWT token ile korunan endpoint'leri test edebilirsin:
+            </p>
+            <button class="btn-test" onclick="testGetMe()">GET /api/auth/me</button>
+            <button class="btn-test" onclick="testAdminOnly()">GET /api/auth/admin-only (Admin Only)</button>
+            <button class="btn-test" onclick="testRefreshToken()">POST /api/auth/refresh</button>
+            <div id="apiResponse" class="api-response" style="display: none;"></div>
+        </div>
+
+        <div class="token-info">
+            <h2>Token Bilgileri</h2>
+            <h3 style="margin-top: 20px; color: var(--text-muted); font-size: 0.9rem;">Access Token:</h3>
+            <div class="token-box" id="accessToken"></div>
+            <h3 style="margin-top: 20px; color: var(--text-muted); font-size: 0.9rem;">Refresh Token:</h3>
+            <div class="token-box" id="refreshToken"></div>
+        </div>
+    </div>
+
+    <script src="dashboard.js"></script>
+</body>
+</html>

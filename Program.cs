@@ -73,6 +73,9 @@ builder.Services.AddMassTransit(x =>
     });
 });
 
+// CORS
+builder.Services.AddCors();
+
 // Controllers
 builder.Services.AddControllers();
 
@@ -115,6 +118,12 @@ builder.Services.AddSwaggerGen(options =>
 
 var app = builder.Build();
 
+// CORS - Frontend için
+app.UseCors(policy => policy
+    .AllowAnyOrigin()
+    .AllowAnyMethod()
+    .AllowAnyHeader());
+
 // Global Exception Handling Middleware
 app.UseMiddleware<GlobalExceptionMiddleware>();
 
@@ -125,16 +134,14 @@ using (var scope = app.Services.CreateScope())
     db.Database.Migrate();
 }
 
-// Configure the HTTP request pipeline
-if (app.Environment.IsDevelopment())
+// Swagger - Always enabled at root
+app.UseSwagger();
+app.UseSwaggerUI(options =>
 {
-    app.UseSwagger();
-    app.UseSwaggerUI(options =>
-    {
-        options.SwaggerEndpoint("/swagger/v1/swagger.json", "BasicAuth API v1");
-        options.RoutePrefix = string.Empty; // Swagger UI will be at root
-    });
-}
+    options.SwaggerEndpoint("/swagger/v1/swagger.json", "BasicAuth API v1");
+    options.RoutePrefix = string.Empty; // Swagger at root (http://localhost:8080)
+    options.DocumentTitle = "BasicAuth API - Swagger Documentation";
+});
 
 app.UseHttpsRedirection();
 

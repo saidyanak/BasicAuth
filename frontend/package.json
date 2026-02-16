@@ -1,0 +1,12 @@
+{
+  "name": "basicauth-frontend",
+  "version": "1.0.0",
+  "description": "BasicAuth Frontend - Login/Register UI",
+  "scripts": {
+    "start": "bash server-start.sh",
+    "dev": "npx http-server -p 3000 -c-1 --cors"
+  },
+  "keywords": ["auth", "jwt", "login"],
+  "author": "",
+  "license": "MIT"
+}

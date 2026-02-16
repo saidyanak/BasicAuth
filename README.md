@@ -1,155 +1,159 @@
-# BasicAuth - Enterprise JWT Authentication System
+# 🔐 BasicAuth - Enterprise JWT Authentication System
 
-**Clean Architecture + CQRS + MediatR + FluentValidation + MassTransit (RabbitMQ)**
-
-Modern .NET 10 ile geliştirilmiş, production-ready JWT authentication sistemi.
-
----
+Modern bir .NET 10 Web API projesi. Clean Architecture, CQRS Pattern, MediatR, FluentValidation, MassTransit (RabbitMQ) ve JWT Authentication ile geliştirilmiştir.
 
 ## ✨ Özellikler
 
-- ✅ **Clean Architecture** (Domain, Application, Infrastructure, API katmanları)
-- ✅ **CQRS Pattern** (MediatR ile Commands & Queries)
-- ✅ **FluentValidation** (Girdi doğrulama)
-- ✅ **MassTransit + RabbitMQ** (Async messaging & Worker Service)
-- ✅ **JWT Access & Refresh Tokens**
-- ✅ **Role-Based Authorization** (User, Admin)
-- ✅ **Global Exception Handling Middleware**
-- ✅ **PostgreSQL** (Entity Framework Core)
-- ✅ **Docker Compose** (API + PostgreSQL + RabbitMQ)
-- ✅ **Swagger UI** (Bearer token authentication)
+### 🏗️ Mimari
+- **Clean Architecture** (Domain, Application, Infrastructure, API katmanları)
+- **CQRS Pattern** (Command Query Responsibility Segregation)
+- **MediatR** ile command/query handling
+- **FluentValidation** ile input validation
+- **Event-Driven Architecture** (MassTransit + RabbitMQ)
+- **Global Exception Handling Middleware**
 
----
+### 🔒 Authentication & Authorization
+- **JWT Access Token** (Short-lived, 60 dakika)
+- **Refresh Token Rotation** (Long-lived, 7 gün, tek kullanımlık)
+- **Role-Based Authorization** (User, Admin)
+- **BCrypt** password hashing
 
-## 🏗️ Proje Yapısı
+### 📦 Teknolojiler
+- .NET 10.0
+- Entity Framework Core 10.0
+- PostgreSQL 16
+- RabbitMQ 3 (Management UI)
+- Docker & Docker Compose
+- Swagger/OpenAPI
 
-```
-BasicAuth/
-├── Domain/                    # İş mantığı çekirdeği
-│   ├── Entities/              # User, RefreshToken
-│   ├── Enums/                 # UserRole
-│   ├── Events/                # UserRegisteredEvent
-│   └── Interfaces/            # IJwtService
-├── Application/               # Use cases (CQRS)
-│   ├── Commands/              # RegisterUserCommand, LoginUserCommand
-│   ├── Queries/               # GetCurrentUserQuery
-│   ├── Validators/            # FluentValidation rules
-│   └── Behaviors/             # ValidationBehavior (MediatR pipeline)
-├── Infrastructure/
-│   ├── Persistence/           # EF Core DbContext
-│   ├── Services/              # JwtService
-│   └── Messaging/             # RabbitMQ Consumer
-├── Controllers/               # AuthController (MediatR kullanarak)
-├── Middleware/                # GlobalExceptionMiddleware
-├── Data/                      # AppDbContext
-├── Migrations/                # EF Core migrations
-├── Program.cs                 # DI configuration
-├── Dockerfile
-└── docker-compose.yml         # API + PostgreSQL + RabbitMQ
-```
+## 🚀 Kurulum
 
-Detaylı mimari dokümantasyonu için: [ARCHITECTURE.md](ARCHITECTURE.md)
+### Gereksinimler
+- Docker & Docker Compose
+- (Opsiyonel) .NET 10 SDK (local development için)
 
----
-
-## 🚀 Hızlı Başlangıç
-
-### Docker ile (Önerilen)
+### 1. Backend (API + Swagger) Çalıştırma
 
 ```bash
-# Tüm servisleri başlat (API + PostgreSQL + RabbitMQ)
-docker-compose up --build
+# Docker ile backend'i başlat
+docker-compose up --build -d
+
+# Logları izle
+docker-compose logs -f api
 ```
 
-**Servisler:**
-- 🌐 API (Swagger): http://localhost:8080
-- 🐘 PostgreSQL: localhost:5432
-- 🐰 RabbitMQ Management: http://localhost:15672 (guest/guest)
+**Backend Servisleri:**
+- **Swagger UI**: http://localhost:8080
+- **API Base URL**: http://localhost:8080/api
+- **PostgreSQL**: localhost:5432
+- **RabbitMQ Management**: http://localhost:15672 (guest/guest)
 
-### Manuel Kurulum
+### 2. Frontend (Web UI) Çalıştırma
 
 ```bash
-# PostgreSQL ve RabbitMQ'nun çalıştığından emin olun
+# Frontend dizinine git
+cd frontend
 
-# Database migration uygula
-dotnet ef database update
-
-# Uygulamayı çalıştır
-dotnet run
+# HTTP Server başlat (Port 3000)
+npm start
 ```
 
----
+**Frontend:**
+- **Web UI**: http://localhost:3000
+- Login/Register sayfası otomatik açılır
 
-## 📡 API Endpoints
+## 📖 API Endpoints
 
-| Endpoint | Method | Açıklama | Auth |
-|----------|--------|----------|------|
-| `/api/auth/register` | POST | Yeni kullanıcı kaydı | ❌ |
-| `/api/auth/login` | POST | Kullanıcı girişi | ❌ |
-| `/api/auth/me` | GET | Kullanıcı bilgilerini getir | ✅ JWT |
-| `/api/auth/admin-only` | GET | Admin-only endpoint | ✅ Admin Role |
+### Public Endpoints (Authentication gerektirmez)
 
----
+#### POST /api/auth/register
+Yeni kullanıcı kaydı.
 
-## 🧪 Örnek Kullanım
-
-### 1️⃣ Kullanıcı Kaydı
-
-**Request:**
-```bash
-POST http://localhost:8080/api/auth/register
-Content-Type: application/json
-
+```json
 {
   "firstName": "Ahmet",
   "lastName": "Yılmaz",
   "email": "ahmet@example.com",
-  "password": "123456"
+  "password": "SecurePass123"
 }
 ```
 
 **Response:**
 ```json
 {
-  "accessToken": "eyJhbGciOiJIUzI1NiIsInR...",
-  "refreshToken": "dGhpc2lzYXJlZnJlc2h0b2tlbg==",
-  "user": {
-    "id": 1,
-    "firstName": "Ahmet",
-    "lastName": "Yılmaz",
-    "email": "ahmet@example.com"
-  }
+  "accessToken": "eyJhbGc...",
+  "refreshToken": "dGVzdC...",
+  "userId": 1,
+  "firstName": "Ahmet",
+  "lastName": "Yılmaz",
+  "email": "ahmet@example.com",
+  "role": "User"
 }
 ```
 
-**🐰 RabbitMQ Consumer Logu:**
-```
-===========================================
-📧 Hoş Geldin Maili Gönder command alındı!
-Kullanıcı ID: 1
-Email: ahmet@example.com
-İsim: Ahmet Yılmaz
-===========================================
-✅ Hoş geldin maili başarıyla gönderildi!
-```
+**Event:** Kayıt başarılı olduğunda `UserRegisteredEvent` RabbitMQ'ya publish edilir ve background worker "hoş geldin" maili gönderir (simülasyon).
 
-### 2️⃣ Login
+---
 
-```bash
-POST http://localhost:8080/api/auth/login
-Content-Type: application/json
+#### POST /api/auth/login
+Kullanıcı girişi.
 
+```json
 {
   "email": "ahmet@example.com",
-  "password": "123456"
+  "password": "SecurePass123"
 }
 ```
 
-### 3️⃣ Me Endpoint (Authenticated)
+**Response:**
+```json
+{
+  "accessToken": "eyJhbGc...",
+  "refreshToken": "dGVzdC...",
+  "userId": 1,
+  "firstName": "Ahmet",
+  "lastName": "Yılmaz",
+  "email": "ahmet@example.com",
+  "role": "User"
+}
+```
 
-```bash
-GET http://localhost:8080/api/auth/me
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR...
+---
+
+#### POST /api/auth/refresh
+Refresh token ile yeni access token alma (Token Rotation).
+
+```json
+{
+  "refreshToken": "dGVzdC..."
+}
+```
+
+**Response:**
+```json
+{
+  "accessToken": "eyJhbGc...",  // YENİ TOKEN
+  "refreshToken": "bmV3VG...",   // YENİ REFRESH TOKEN
+  "userId": 1,
+  "firstName": "Ahmet",
+  "lastName": "Yılmaz",
+  "email": "ahmet@example.com",
+  "role": "User"
+}
+```
+
+**Önemli:** Eski refresh token otomatik revoke edilir (tek kullanımlık).
+
+---
+
+### Protected Endpoints (JWT Bearer Token gerektirir)
+
+#### GET /api/auth/me
+Oturum açmış kullanıcının bilgilerini getirir.
+
+**Headers:**
+```
+Authorization: Bearer eyJhbGc...
 ```
 
 **Response:**
@@ -160,193 +164,356 @@ Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR...
   "lastName": "Yılmaz",
   "email": "ahmet@example.com",
   "role": "User",
+  "isActive": true,
   "createdAt": "2026-02-15T12:00:00Z"
 }
 ```
 
 ---
 
-## 🔐 Teknolojiler
+#### GET /api/auth/admin-only
+Sadece Admin rolü erişebilir.
 
-| Teknoloji | Versiyon | Kullanım Amacı |
-|-----------|----------|---------------|
-| .NET | 10.0 | Framework |
-| ASP.NET Core | 10.0 | Web API |
-| Entity Framework Core | 10.0 | ORM (PostgreSQL) |
-| **MediatR** | 14.0 | CQRS implementasyonu |
-| **FluentValidation** | 12.1 | Girdi doğrulama |
-| **MassTransit** | 9.0 | RabbitMQ entegrasyonu |
-| PostgreSQL | 16 | Veritabanı |
-| RabbitMQ | 3 | Message broker |
-| BCrypt.Net | 4.0 | Şifre hashleme |
-| Swashbuckle | 7.2 | Swagger UI |
-| Docker | - | Konteynerizasyon |
-
----
-
-## 🎯 CQRS Flow Örneği
-
-**Register Flow:**
+**Headers:**
 ```
-1. POST /api/auth/register
-   ↓
-2. AuthController → MediatR.Send(RegisterUserCommand)
-   ↓
-3. ValidationBehavior (FluentValidation)
-   ↓
-4. RegisterUserCommandHandler
-   ├─→ User kaydı (EF Core)
-   ├─→ JWT & RefreshToken üretimi
-   └─→ RabbitMQ'ya UserRegisteredEvent publish (MassTransit)
-   ↓
-5. UserRegisteredEventConsumer (Worker Service)
-   └─→ "Hoş geldin maili" simülasyonu
+Authorization: Bearer eyJhbGc...
 ```
 
----
-
-## 🔧 Konfigürasyon
-
-`appsettings.json`:
-
+**Response (Admin ise):**
 ```json
 {
-  "ConnectionStrings": {
-    "DefaultConnection": "Host=localhost;Port=5432;Database=basicauth;..."
-  },
-  "JwtSettings": {
-    "SecretKey": "your-secret-key-min-32-chars",
-    "Issuer": "BasicAuthAPI",
-    "Audience": "BasicAuthClient",
-    "ExpirationMinutes": "60"
-  },
-  "RabbitMQ": {
-    "Host": "localhost",
-    "Username": "guest",
-    "Password": "guest"
-  }
+  "message": "Burası sadece Admin'ler içindir!",
+  "userId": 1,
+  "role": "Admin"
 }
 ```
 
----
-
-## 📚 Katman Sorumlulukları
-
-| Katman | Sorumluluk | Bağımlılıklar |
-|--------|-----------|---------------|
-| **Domain** | İş mantığı, Entity'ler, Events | ❌ Hiçbiri |
-| **Application** | Use cases, CQRS, Validators | ✅ Domain |
-| **Infrastructure** | EF Core, JWT, RabbitMQ | ✅ Application, Domain |
-| **API** | Controllers, Middleware | ✅ Tüm katmanlar |
-
----
-
-## 🛡️ Güvenlik Özellikleri
-
-1. ✅ **JWT Access Token** (60 dakika)
-2. ✅ **Refresh Token** (7 gün, DB'de saklanır)
-3. ✅ **Role-Based Authorization** ([Authorize(Roles = "Admin")])
-4. ✅ **BCrypt Password Hashing**
-5. ✅ **FluentValidation** (SQL Injection, XSS koruması)
-6. ✅ **Global Exception Handling** (Güvenli hata mesajları)
-
----
-
-## 📊 Database Schema
-
-### Users Tablosu
-| Kolon | Tip | Açıklama |
-|-------|-----|----------|
-| Id | int | Primary key |
-| FirstName | varchar(100) | Kullanıcı adı |
-| LastName | varchar(100) | Kullanıcı soyadı |
-| Email | varchar(255) | Email (unique) |
-| PasswordHash | text | BCrypt hash |
-| Role | enum | User, Admin |
-| IsActive | bool | Hesap aktif mi? |
-| CreatedAt | timestamp | Kayıt tarihi |
-
-### RefreshTokens Tablosu
-| Kolon | Tip | Açıklama |
-|-------|-----|----------|
-| Id | int | Primary key |
-| Token | text | Refresh token (unique) |
-| UserId | int | Foreign key → Users |
-| ExpiresAt | timestamp | Geçerlilik süresi |
-| IsRevoked | bool | İptal edildi mi? |
-| CreatedAt | timestamp | Oluşturulma tarihi |
-
----
-
-## 🧪 Test (Swagger UI)
-
-1. http://localhost:8080 adresine git
-2. **POST /api/auth/register** ile kayıt ol
-3. Response'daki `accessToken`'ı kopyala
-4. Sağ üstteki **"Authorize"** butonuna tıkla
-5. `Bearer {accessToken}` yaz ve **Authorize**
-6. **GET /api/auth/me** endpoint'ini test et
-
----
-
-## 🐳 Docker Commands
-
-```bash
-# Tüm servisleri başlat
-docker-compose up -d
-
-# Logları izle
-docker-compose logs -f api
-
-# RabbitMQ Management UI
-http://localhost:15672 (guest/guest)
-
-# Servisleri durdur
-docker-compose down
-
-# Volumeleri de sil
-docker-compose down -v
+**Response (User ise):**
+```json
+403 Forbidden
 ```
 
 ---
 
-## 🚧 Gelecek İyileştirmeler
+## 🎨 Web UI Kullanımı
 
-- [ ] Refresh Token rotation endpoint
-- [ ] Email verification (SMTP)
-- [ ] Forgot password flow
-- [ ] Rate limiting (Redis)
-- [ ] Unit & Integration tests
-- [ ] CI/CD pipeline
-- [ ] Serilog (structured logging)
-- [ ] Health checks
-- [ ] API versioning
+### Frontend Başlatma
+```bash
+cd frontend
+npm start
+```
 
----
+Tarayıcıda otomatik açılır: **http://localhost:3000**
 
-## 📖 Dokümantasyon
+### Kullanım Adımları
+1. **Kayıt Ol** veya **Giriş Yap** formunu kullan
+2. Başarılı girişten sonra **Dashboard** sayfası açılır
+3. Dashboard'da:
+   - Kullanıcı bilgilerini görüntüle
+   - Access Token ve Refresh Token'ı gör
+   - API endpoint'lerini test et:
+     - `GET /api/auth/me` - Profil bilgileri
+     - `GET /api/auth/admin-only` - Admin kontrolü
+     - `POST /api/auth/refresh` - Token yenileme
 
-- **Mimari Detayları**: [ARCHITECTURE.md](ARCHITECTURE.md)
-- **Swagger UI**: http://localhost:8080
+### Port Ayrımı
+- **Frontend**: http://localhost:3000 (Web UI)
+- **Backend**: http://localhost:8080 (Swagger + API)
 
----
+## 🏛️ Proje Yapısı
 
-## 📝 Lisans
+```
+BasicAuth/
+├── Controllers/
+│   └── AuthController.cs              # API endpoints (MediatR orchestration)
+├── Application/
+│   ├── Commands/
+│   │   ├── RegisterUserCommand.cs     # Kayıt command
+│   │   ├── LoginUserCommand.cs        # Login command
+│   │   └── RefreshTokenCommand.cs     # Refresh token command
+│   ├── Queries/
+│   │   └── GetCurrentUserQuery.cs     # Kullanıcı bilgisi query
+│   ├── Validators/
+│   │   ├── RegisterUserCommandValidator.cs
+│   │   ├── LoginUserCommandValidator.cs
+│   │   └── RefreshTokenCommandValidator.cs
+│   └── Behaviors/
+│       └── ValidationBehavior.cs      # FluentValidation pipeline
+├── Domain/
+│   ├── Entities/
+│   │   ├── User.cs                    # User entity
+│   │   ├── RefreshToken.cs            # Refresh token entity
+│   │   └── BaseEntity.cs              # Base entity (Id, CreatedAt)
+│   ├── Enums/
+│   │   └── UserRole.cs                # User, Admin
+│   ├── Events/
+│   │   └── UserRegisteredEvent.cs     # RabbitMQ event
+│   └── Interfaces/
+│       └── IJwtService.cs             # JWT service interface
+├── Infrastructure/
+│   ├── Services/
+│   │   └── JwtService.cs              # JWT token generation
+│   └── Messaging/
+│       └── UserRegisteredEventConsumer.cs  # RabbitMQ consumer
+├── Data/
+│   └── AppDbContext.cs                # EF Core DbContext
+├── Middleware/
+│   └── GlobalExceptionMiddleware.cs   # Global exception handling
+├── wwwroot/
+│   ├── index.html                     # Login/Register page
+│   ├── dashboard.html                 # Dashboard page
+│   ├── style.css                      # Styles
+│   ├── app.js                         # Login/Register logic
+│   └── dashboard.js                   # Dashboard logic
+└── Program.cs                         # DI Configuration & Middleware
+```
 
-MIT
+## 🔄 CQRS Pattern Örneği
 
----
+### Traditional Service Layer (Eski Yöntem)
+```csharp
+// ❌ Tek bir AuthService, 500+ satır kod
+public class AuthService {
+    public async Task<LoginResult> LoginAsync(...) { }
+    public async Task<RegisterResult> RegisterAsync(...) { }
+    public async Task<RefreshResult> RefreshTokenAsync(...) { }
+    // 10+ method daha...
+}
+```
+
+### CQRS with MediatR (Bizim Kullandığımız)
+```csharp
+// ✅ Her işlem için ayrı handler, her biri 50-100 satır
+
+// Login Handler
+public class LoginUserCommandHandler : IRequestHandler<LoginUserCommand, LoginUserCommandResult>
+{
+    // SADECE login işleminden sorumlu
+}
+
+// Register Handler
+public class RegisterUserCommandHandler : IRequestHandler<RegisterUserCommand, RegisterUserCommandResult>
+{
+    // SADECE register işleminden sorumlu
+}
+
+// Refresh Token Handler
+public class RefreshTokenCommandHandler : IRequestHandler<RefreshTokenCommand, RefreshTokenCommandResult>
+{
+    // SADECE refresh token işleminden sorumlu
+}
+```
+
+**Avantajlar:**
+- ✅ Single Responsibility Principle
+- ✅ Her handler bağımsız test edilebilir
+- ✅ FluentValidation otomatik çalışır (Pipeline Behavior)
+- ✅ Yeni özellik eklemek çok kolay
+
+## 🐰 RabbitMQ Event-Driven Flow
+
+```
+1. User register ediyor (POST /api/auth/register)
+   ↓
+2. RegisterUserCommandHandler çalışıyor:
+   ├─ User kaydediliyor (Database)
+   ├─ JWT token'lar üretiliyor
+   └─ UserRegisteredEvent publish ediliyor (RabbitMQ)
+   ↓
+3. RabbitMQ queue'da event bekliyor
+   ↓
+4. UserRegisteredEventConsumer (Background Worker) eventi alıyor
+   ↓
+5. "Hoş geldin" maili gönderiliyor (simülasyon)
+   ✅ Log: "Hoş geldin maili başarıyla 'ahmet@example.com' adresine gönderildi!"
+```
+
+**RabbitMQ Management UI'da görebilirsin:**
+- http://localhost:15672
+- Username: `guest`
+- Password: `guest`
+
+## 🔐 JWT Token Validation
+
+### Java Spring Security'den Farkı
+
+**Java'da (Manuel):**
+```java
+// ❌ Sen yazıyorsun:
+JwtAuthenticationFilter
+JwtTokenProvider.validateToken()
+UserDetailsService.loadUserByUsername()  // Her istekte DATABASE!
+```
+
+**.NET'te (Otomatik):**
+```csharp
+// ✅ Framework yapıyor:
+builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+    .AddJwtBearer(options => {
+        options.TokenValidationParameters = new TokenValidationParameters {
+            ValidateIssuer = true,
+            ValidateAudience = true,
+            ValidateLifetime = true,
+            ValidateIssuerSigningKey = true,
+            // ...
+        };
+    });
+
+app.UseAuthentication(); // Bu satır yeter!
+```
+
+**Sonuç:**
+- .NET'te **custom filter yazmaya gerek yok**
+- Built-in middleware otomatik validation yapıyor
+- Claims token'da, **her istekte DB'ye gitmeye gerek yok** → Çok daha performanslı!
+
+## 🧪 Test Senaryoları
+
+### 1. Kayıt Ol ve Token Al
+```bash
+curl -X POST http://localhost:8080/api/auth/register \
+  -H "Content-Type: application/json" \
+  -d '{
+    "firstName": "Test",
+    "lastName": "User",
+    "email": "test@example.com",
+    "password": "Test123456"
+  }'
+```
+
+### 2. Giriş Yap
+```bash
+curl -X POST http://localhost:8080/api/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{
+    "email": "test@example.com",
+    "password": "Test123456"
+  }'
+```
+
+### 3. Profil Bilgilerini Al (JWT ile)
+```bash
+curl -X GET http://localhost:8080/api/auth/me \
+  -H "Authorization: Bearer YOUR_ACCESS_TOKEN"
+```
+
+### 4. Token Yenile (Rotation)
+```bash
+curl -X POST http://localhost:8080/api/auth/refresh \
+  -H "Content-Type: application/json" \
+  -d '{
+    "refreshToken": "YOUR_REFRESH_TOKEN"
+  }'
+```
+
+## 📚 Dependency Injection (DI)
+
+**Program.cs'te tüm DI kayıtları:**
+
+```csharp
+// Database
+builder.Services.AddDbContext<AppDbContext>(options =>
+    options.UseNpgsql(connectionString));
+
+// Custom Services
+builder.Services.AddScoped<IJwtService, JwtService>();
+
+// MediatR (tüm handler'ları otomatik kaydeder)
+builder.Services.AddMediatR(cfg =>
+    cfg.RegisterServicesFromAssembly(Assembly.GetExecutingAssembly()));
+
+// FluentValidation (tüm validator'ları otomatik kaydeder)
+builder.Services.AddValidatorsFromAssembly(Assembly.GetExecutingAssembly());
+
+// Validation Pipeline Behavior
+builder.Services.AddTransient(typeof(IPipelineBehavior<,>), typeof(ValidationBehavior<,>));
+
+// MassTransit & RabbitMQ
+builder.Services.AddMassTransit(x => {
+    x.AddConsumer<UserRegisteredEventConsumer>();
+    x.UsingRabbitMq((context, cfg) => { ... });
+});
+```
+
+**Lifecycle'lar:**
+- **Scoped**: AppDbContext, JwtService (Her HTTP request için yeni instance)
+- **Transient**: Handlers, ValidationBehavior (Her istekte yeni instance)
+- **Singleton**: Kullanılmamış
+
+## 🛠️ Development
+
+### Local Development (without Docker)
+
+```bash
+# appsettings.json'da connection string güncelle
+"ConnectionStrings": {
+  "DefaultConnection": "Host=localhost;Database=basicauth;Username=postgres;Password=postgres"
+}
+
+# Migration çalıştır
+dotnet ef database update
+
+# Uygulamayı başlat
+dotnet run
+```
+
+### Database Migration Oluşturma
+
+```bash
+dotnet ef migrations add MigrationName
+dotnet ef database update
+```
+
+## 📝 Notlar
+
+### Token Rotation Neden Önemli?
+- Eski refresh token **tek kullanımlık** (use-once principle)
+- Her refresh işleminde eski token **revoke** edilir
+- Yeni access + refresh token çifti döner
+- **Security:** Token çalınsa bile sınırlı süre geçerli
+
+### FluentValidation Pipeline
+- Her command/query otomatik validate edilir
+- Validation hatası varsa `400 Bad Request` döner
+- Controller'da manuel validation yapmaya gerek yok
+
+### Global Exception Handling
+- Tüm exception'lar `GlobalExceptionMiddleware` tarafından yakalanır
+- `ValidationException` → 400 Bad Request
+- `UnauthorizedAccessException` → 401 Unauthorized
+- `KeyNotFoundException` → 404 Not Found
+- Diğer hatalar → 500 Internal Server Error
+
+## 🎤 Mülakat İçin Önemli Noktalar
+
+1. **Clean Architecture**: Domain, Application, Infrastructure, API katmanları ayrı
+2. **CQRS Pattern**: Read (Query) ve Write (Command) işlemleri ayrı
+3. **MediatR**: Command/Query handler'lar business logic içerir, controller'lar sadece orchestration yapar
+4. **Dependency Injection**: IoC Container ile loose coupling
+5. **Event-Driven**: MassTransit ile asenkron event processing
+6. **Security Best Practices**:
+   - BCrypt password hashing
+   - JWT access token (short-lived)
+   - Refresh token rotation (long-lived, one-time use)
+   - Role-based authorization
+
+## 📖 Ek Dökümanlar
+
+Proje root'unda detaylı açıklama dökümanları:
+- [CURRENT_ARCHITECTURE_EXPLAINED.md](CURRENT_ARCHITECTURE_EXPLAINED.md) - Mimari detayları
+- [DEPENDENCY_INJECTION_EXPLAINED.md](DEPENDENCY_INJECTION_EXPLAINED.md) - DI/IoC açıklaması
+- [JWT_VALIDATION_EXPLAINED.md](JWT_VALIDATION_EXPLAINED.md) - JWT validation, Java vs .NET karşılaştırması
 
 ## 🤝 Katkıda Bulunma
 
-1. Fork yapın
-2. Feature branch oluşturun (`git checkout -b feature/amazing-feature`)
-3. Commit atın (`git commit -m 'Add amazing feature'`)
-4. Push yapın (`git push origin feature/amazing-feature`)
-5. Pull Request açın
+Bu proje bir staj görüşmesi için hazırlanmış örnek bir projedir.
+
+## 📄 Lisans
+
+MIT License
 
 ---
 
-**Geliştirici**: [Saidyan AK]  
-**Tarih**: Şubat 2026  
-**Framework**: .NET 10.0
+**Hazırlayan:** [Your Name]
+**Tarih:** 2026-02-15
+**Teknolojiler:** .NET 10, Clean Architecture, CQRS, MediatR, FluentValidation, MassTransit, RabbitMQ, PostgreSQL, Docker

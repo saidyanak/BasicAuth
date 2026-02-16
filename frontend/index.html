@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BasicAuth - Giriş Yap</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <div class="card">
+            <div class="card-header">
+                <h1 class="logo">🔐 BasicAuth</h1>
+                <p class="subtitle">Clean Architecture + CQRS + JWT</p>
+            </div>
+
+            <!-- Login Form -->
+            <div id="loginForm" class="form-container active">
+                <h2>Giriş Yap</h2>
+                <form id="login">
+                    <div class="form-group">
+                        <label for="loginEmail">Email</label>
+                        <input type="email" id="loginEmail" placeholder="ornek@email.com" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="loginPassword">Şifre</label>
+                        <input type="password" id="loginPassword" placeholder="••••••••" required>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Giriş Yap</button>
+                </form>
+                <p class="switch-form">
+                    Hesabın yok mu? <a href="#" id="showRegister">Kayıt Ol</a>
+                </p>
+            </div>
+
+            <!-- Register Form -->
+            <div id="registerForm" class="form-container">
+                <h2>Kayıt Ol</h2>
+                <form id="register">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="registerFirstName">Ad</label>
+                            <input type="text" id="registerFirstName" placeholder="Ad" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="registerLastName">Soyad</label>
+                            <input type="text" id="registerLastName" placeholder="Soyad" required>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="registerEmail">Email</label>
+                        <input type="email" id="registerEmail" placeholder="ornek@email.com" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="registerPassword">Şifre</label>
+                        <input type="password" id="registerPassword" placeholder="En az 6 karakter" required>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Kayıt Ol</button>
+                </form>
+                <p class="switch-form">
+                    Zaten hesabın var mı? <a href="#" id="showLogin">Giriş Yap</a>
+                </p>
+            </div>
+
+            <!-- Alert Box -->
+            <div id="alert" class="alert"></div>
+        </div>
+
+        <div class="features">
+            <div class="feature-item">
+                <span class="feature-icon">🏗️</span>
+                <h3>Clean Architecture</h3>
+                <p>Domain, Application, Infrastructure katmanları</p>
+            </div>
+            <div class="feature-item">
+                <span class="feature-icon">⚡</span>
+                <h3>CQRS + MediatR</h3>
+                <p>Command/Query pattern ile ayrılmış business logic</p>
+            </div>
+            <div class="feature-item">
+                <span class="feature-icon">🐰</span>
+                <h3>RabbitMQ</h3>
+                <p>MassTransit ile event-driven architecture</p>
+            </div>
+            <div class="feature-item">
+                <span class="feature-icon">🔒</span>
+                <h3>JWT Authentication</h3>
+                <p>Access Token + Refresh Token rotation</p>
+            </div>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
